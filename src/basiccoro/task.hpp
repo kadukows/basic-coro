@@ -33,13 +33,6 @@ struct ValuePromise<Derived, void> : public PromiseBase<Derived>
 };
 
 template<class T>
-struct ValuePromiseInstance : public ValuePromise<ValuePromiseInstance<T>, T>
-{
-    auto initial_suspend() { return std::suspend_never(); }
-    auto final_suspend() { return std::suspend_never(); }
-};
-
-template<class T>
 class AwaitablePromise : public ValuePromise<AwaitablePromise<T>, T>
 {
 public:
@@ -68,9 +61,8 @@ public:
 
     ~AwaitablePromise()
     {
-        if (waiting_)
+        if (waiting_ && !waiting_.done())
         {
-            // this happens only when destroying prematurely
             waiting_.destroy();
         }
     }
@@ -78,6 +70,10 @@ public:
 private:
     std::coroutine_handle<> waiting_ = nullptr;
 };
+
+template<class Promise>
+using NeedsToBeDestroyedAfterDone = std::negation<std::is_same<decltype(std::declval<Promise>().final_suspend()), std::suspend_never>>;
+static_assert(NeedsToBeDestroyedAfterDone<AwaitablePromise<void>>::value == false);
 
 template<class Promise>
 class TaskBase
@@ -132,8 +128,10 @@ struct AwaitableTask<T>::awaiter
         return task_.done();
     }
 
-    void await_suspend(std::coroutine_handle<> handle)
+    template<class Promise>
+    void await_suspend(std::coroutine_handle<Promise> handle)
     {
+        static_assert(!detail::NeedsToBeDestroyedAfterDone<Promise>::value, "basiccoro::AwaitableTask: can be used only with auto destructing coroutines");
         task_.handle_.promise().storeWaiting(handle);
     }
 
