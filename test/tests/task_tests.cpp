@@ -9,16 +9,17 @@ namespace basiccoro
 class AwaitableTaskShould : public ::testing::Test
 {
 protected:
-    AwaitableTask<void> setBoolThenHalt(bool& b)
+    AwaitableTask<void> increaseValueThanHalt(int& i)
     {
-        b = true;
+        i += 1;
         co_await e_;
+        i += 1;
     }
 
-    AwaitableTask<void> haltThenSetBool(bool& b)
+    AwaitableTask<void> haltThenIncreaseValue(int& i)
     {
         co_await e_;
-        b = true;
+        i += 1;
     }
 
     SingleEvent<void> e_;
@@ -26,19 +27,20 @@ protected:
 
 TEST_F(AwaitableTaskShould, StartItselfEagearly)
 {
-    bool tested = false;
-    setBoolThenHalt(tested);
+    int tested = 0;
+    increaseValueThanHalt(tested);
 
-    EXPECT_TRUE(tested);
+    EXPECT_EQ(tested, 1);
 }
 
-TEST_F(AwaitableTaskShould, resumeItself)
+TEST_F(AwaitableTaskShould, ResumeItself)
 {
-    bool tested = false;
-    haltThenSetBool(tested);
-    e_.set();
+    int tested = 0;
+    haltThenIncreaseValue(tested);
 
-    EXPECT_TRUE(tested);
+    EXPECT_EQ(tested, 0);
+    e_.set();
+    EXPECT_EQ(tested, 1);
 }
 
 }  // namespace basiccoro

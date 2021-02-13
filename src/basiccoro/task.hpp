@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <utility>
 
+#include "types.hpp"
+
 namespace basiccoro
 {
 namespace detail
@@ -72,10 +74,6 @@ private:
 };
 
 template<class Promise>
-using NeedsToBeDestroyedAfterDone = std::negation<std::is_same<decltype(std::declval<Promise>().final_suspend()), std::suspend_never>>;
-static_assert(NeedsToBeDestroyedAfterDone<AwaitablePromise<void>>::value == false);
-
-template<class Promise>
 class TaskBase
 {
 public:
@@ -131,7 +129,7 @@ struct AwaitableTask<T>::awaiter
     template<class Promise>
     void await_suspend(std::coroutine_handle<Promise> handle)
     {
-        static_assert(!detail::NeedsToBeDestroyedAfterDone<Promise>::value, "basiccoro::AwaitableTask: can be used only with auto destructing coroutines");
+        static_assert(!NeedsToBeDestroyedAfterDone<Promise>::value, "basiccoro::AwaitableTask::awaiter::await_suspend(): can be used only with auto destructing coroutines");
         task_.handle_.promise().storeWaiting(handle);
     }
 

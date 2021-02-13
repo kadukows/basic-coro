@@ -2,6 +2,7 @@
 
 #include <coroutine>
 #include <optional>
+#include <stdexcept>
 #include <type_traits>
 #include <vector>
 
@@ -39,7 +40,11 @@ public:
     {
         if constexpr (!std::is_same_v<typename Event::value_type, void>)
         {
-            return event_.value();
+            if (!event_.result)
+            {
+                throw std::runtime_error("AwaiterBase: no value in event_.result");
+            }
+            return *event_.result;
         }
     }
 
@@ -50,41 +55,21 @@ private:
 class SingleEventBase
 {
 public:
-    ~SingleEventBase()
-    {
-        for (auto handle : waiting_)
-        {
-            handle.destroy();
-        }
-    }
+    SingleEventBase() = default;
+    SingleEventBase(const SingleEventBase&) = delete;
+    SingleEventBase(SingleEventBase&&);
+    SingleEventBase& operator=(const SingleEventBase&) = delete;
+    SingleEventBase& operator=(SingleEventBase&&);
+    ~SingleEventBase();
 
-    template<class T>
-    friend class AwaiterBase;
-
-    bool isSet() const { return isSet_; }
+    bool isSet() const;
 
 protected:
-    void set_common()
-    {
-        if (!isSet_)
-        {
-            if (waiting_.empty())
-            {
-                isSet_ = true;
-            }
-            else
-            {
-                auto temp = std::move(waiting_);
-
-                for (auto handle : temp)
-                {
-                    handle.resume();
-                }
-            }
-        }
-    }
+    void set_common();
 
 private:
+    template<class T>
+    friend class AwaiterBase;
     std::vector<std::coroutine_handle<>> waiting_;
     bool isSet_ = false;
 };
@@ -98,11 +83,11 @@ public:
     using value_type = T;
     using awaiter = detail::AwaiterBase<SingleEvent<T>>;
 
-    void set(T t) { result = t; set_common(); }
-    const T& value() const { return result.value(); }
+    void set(T t) { result = std::move(t); set_common(); }
     awaiter operator co_await() { return awaiter{*this}; }
 
 private:
+    friend awaiter;
     std::optional<T> result;
 };
 
@@ -113,8 +98,8 @@ public:
     using value_type = void;
     using awaiter = detail::AwaiterBase<SingleEvent<void>>;
 
-    void set() { set_common(); }
-    awaiter operator co_await() { return awaiter{*this}; }
+    void set();
+    awaiter operator co_await();
 };
 
 }  // namespace basiccoro

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 project(basic-coro-tests)
 
-add_subdirectory(lib/googletest)
+add_subdirectory(lib/googletest EXCLUDE_FROM_ALL)
 
 set(TESTS_SOURCE_FILES
     main.cpp
