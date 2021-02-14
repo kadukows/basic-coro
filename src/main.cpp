@@ -4,20 +4,20 @@
 #include <basiccoro/task.hpp>
 #include <basiccoro/awaitables.hpp>
 
-basiccoro::AwaitableTask<void> consumer(basiccoro::SingleEvent<std::reference_wrapper<const int>>& event)
+basiccoro::AwaitableTask<void> consumer(basiccoro::SingleEvent<int>& event)
 {
     std::cout << "consumer: start waiting" << std::endl;
 
     while (true)
     {
         const auto i = co_await event;
-        std::cout << "consumer: received: " << i.get() << std::endl;
+        std::cout << "consumer: received: " << i << std::endl;
     }
 }
 
 int main()
 {
-    basiccoro::SingleEvent<std::reference_wrapper<const int>> event;
+    basiccoro::SingleEvent<int> event;
     consumer(event);
 
     while (true)
@@ -33,7 +33,7 @@ int main()
         }
         else if (1 <= i && i <= 9)
         {
-            event.set(std::cref(i));
+            event.set(i);
         }
     }
 }
