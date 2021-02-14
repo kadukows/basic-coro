@@ -11,6 +11,5 @@ set(TESTS_SOURCE_FILES
 add_executable(basiccoro-tests ${TESTS_SOURCE_FILES})
 target_include_directories(basiccoro-tests PUBLIC ${BASICCORO_HEADERS_DIR})
 target_link_libraries(basiccoro-tests basiccoro gtest)
-install(TARGETS basiccoro-tests DESTINATION ${PROJECT_SOURCE_DIR}/bin)
 
 add_custom_target(run-basiccoro-tests basiccoro-tests)

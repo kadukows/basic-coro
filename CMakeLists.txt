@@ -12,4 +12,4 @@ set(BASICCORO_HEADERS_DIR ${PROJECT_SOURCE_DIR}/src/)
 
 
 add_subdirectory(src)
-add_subdirectory(test)
+add_subdirectory(test EXCLUDE_FROM_ALL)
