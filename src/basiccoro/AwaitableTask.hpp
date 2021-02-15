@@ -1,11 +1,10 @@
 #pragma once
 
+#include <concepts>
 #include <coroutine>
 #include <exception>
 #include <stdexcept>
 #include <utility>
-
-#include "types.hpp"
 
 namespace basiccoro
 {
@@ -19,7 +18,7 @@ struct PromiseBase
     void unhandled_exception() { std::terminate(); }
 };
 
-template<class Derived, class T>
+template<class Derived, class T> requires std::movable<T> || std::same_as<T, void>
 struct ValuePromise : public PromiseBase<Derived>
 {
     using value_type = T;
@@ -45,10 +44,14 @@ public:
         if (waiting_)
         {
             waiting_.resume();
+            if (waiting_.done())
+            {
+                waiting_.destroy();
+            }
             waiting_ = nullptr;
         }
 
-        return std::suspend_never();
+        return std::suspend_always();
     }
 
     void storeWaiting(std::coroutine_handle<> handle)
@@ -63,7 +66,7 @@ public:
 
     ~AwaitablePromise()
     {
-        if (waiting_ && !waiting_.done())
+        if (waiting_)
         {
             waiting_.destroy();
         }
@@ -81,25 +84,47 @@ public:
 
     TaskBase(std::coroutine_handle<promise_type> handle);
     TaskBase(const TaskBase&) = delete;
-    TaskBase(TaskBase&& other);
+    TaskBase(TaskBase&&) = delete;
     TaskBase& operator=(const TaskBase&) = delete;
-    TaskBase& operator=(TaskBase&& other) = delete;
+    TaskBase& operator=(TaskBase&&) = delete;
+    ~TaskBase();
 
     bool done() const { return handle_.done(); }
 
 protected:
+    bool handleShouldBeDestroyed_;
     std::coroutine_handle<promise_type> handle_;
 };
 
 template<class Promise>
 TaskBase<Promise>::TaskBase(std::coroutine_handle<promise_type> handle)
     : handle_(handle)
-{}
+{
+    // TODO: this whole system needs revamping with something like UniqueCoroutineHandle
+    // and custom static interface to awaiter types - so await_suspend method would take in UniqueCoroutineHandle
+
+    if (handle.done())
+    {
+        // it could be resonable expected that if the coroutine is done before
+        // the task creation, that the original stack is continued, and coroutine needs
+        // to be destroyed with TaskBase object
+        handleShouldBeDestroyed_ = true;
+    }
+    else
+    {
+        // otherwise the coroutine should be managed by object that it is awaiting
+        handleShouldBeDestroyed_ = false;
+    }
+}
 
 template<class Promise>
-TaskBase<Promise>::TaskBase(TaskBase&& other)
-    : handle_(std::exchange(other.handle_, nullptr))
-{}
+TaskBase<Promise>::~TaskBase()
+{
+    if (handleShouldBeDestroyed_)
+    {
+        handle_.destroy();
+    }
+}
 
 }  // namespace detail
 
@@ -129,7 +154,6 @@ struct AwaitableTask<T>::awaiter
     template<class Promise>
     void await_suspend(std::coroutine_handle<Promise> handle)
     {
-        static_assert(!NeedsToBeDestroyedAfterDone<Promise>::value, "basiccoro::AwaitableTask::awaiter::await_suspend(): can be used only with auto destructing coroutines");
         task_.handle_.promise().storeWaiting(handle);
     }
 

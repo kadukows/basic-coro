@@ -23,7 +23,7 @@ public:
     {
         if (event_.isSet())
         {
-            // unset already set event, than continue coroutine
+            // unset already set event, then continue coroutine
             event_.isSet_ = false;
             return true;
         }

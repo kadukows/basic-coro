@@ -1,8 +1,8 @@
 #include <iostream>
 #include <memory>
 
-#include <basiccoro/task.hpp>
-#include <basiccoro/awaitables.hpp>
+#include <basiccoro/AwaitableTask.hpp>
+#include <basiccoro/SingleEvent.hpp>
 
 basiccoro::AwaitableTask<void> consumer(basiccoro::SingleEvent<int>& event)
 {

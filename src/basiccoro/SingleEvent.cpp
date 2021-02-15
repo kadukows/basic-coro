@@ -1,4 +1,4 @@
-#include "awaitables.hpp"
+#include "SingleEvent.hpp"
 
 namespace basiccoro
 {
@@ -41,6 +41,10 @@ void detail::SingleEventBase::set_common()
             for (auto handle : temp)
             {
                 handle.resume();
+                if (handle.done())
+                {
+                    handle.destroy();
+                }
             }
         }
     }

@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.8)
 project(basic-coro)
 
 set(BASICCORO_SOURCE_FILES
-    basiccoro/awaitables.cpp)
+    basiccoro/SingleEvent.cpp)
 
 set(BASICCORO_HEADER_FILES
-    basiccoro/awaitables.hpp
-    basiccoro/task.hpp)
+    basiccoro/SingleEvent.hpp
+    basiccoro/AwaitableTask.hpp)
 
 add_library(basiccoro STATIC ${BASICCORO_SOURCE_FILES})
 install(TARGETS basiccoro DESTINATION ${BASICCORO_INSTALL_LIB_DIR})
