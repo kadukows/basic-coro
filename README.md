@@ -15,8 +15,9 @@ This will install appropriate headers into `./include/` and static linked librar
 
 ### Classes
 Library includes following classes:
-* `SingleEvent<T>` which models `co_await` enabled event that can be set
-* `AwaitableTask<T>` which models `co_await` enabled task
+* `SingleEvent<T>` which models `co_await` enabled event that can be set,
+* `AwaitableTask<T>` which models `co_await` enabled task.
+
 Please note that these classes are not multithreading enabled. There is no synchronization or any kind of protection form race conditions. If you need to use coroutines with multithreading, just use [CppCoro](https://github.com/lewissbaker/cppcoro). This library is mostly thought for use with simple GUI programming.
 
 ### Example
@@ -55,7 +56,7 @@ int main()
     }
 }
 ```
-Simple example highlighting use of
+Simple example highlighting use of coroutines in producer-consumer problem.
 
 ## Acknowledgments
 * [CMake C++ Project Template](https://github.com/kigster/cmake-project-template) as this project is based on this template
