@@ -82,19 +82,25 @@ class TaskBase
 public:
     using promise_type = Promise;
 
+    TaskBase();
     TaskBase(std::coroutine_handle<promise_type> handle);
     TaskBase(const TaskBase&) = delete;
-    TaskBase(TaskBase&&) = delete;
+    TaskBase(TaskBase&&);
     TaskBase& operator=(const TaskBase&) = delete;
-    TaskBase& operator=(TaskBase&&) = delete;
+    TaskBase& operator=(TaskBase&&);
     ~TaskBase();
 
     bool done() const { return handle_.done(); }
 
 protected:
-    bool handleShouldBeDestroyed_;
     std::coroutine_handle<promise_type> handle_;
+    bool handleShouldBeDestroyed_;
 };
+
+template<class Promise>
+TaskBase<Promise>::TaskBase()
+    : handle_(nullptr), handleShouldBeDestroyed_(false)
+{}
 
 template<class Promise>
 TaskBase<Promise>::TaskBase(std::coroutine_handle<promise_type> handle)
@@ -105,9 +111,9 @@ TaskBase<Promise>::TaskBase(std::coroutine_handle<promise_type> handle)
 
     if (handle.done())
     {
-        // it could be resonable expected that if the coroutine is done before
-        // the task creation, that the original stack is continued, and coroutine needs
-        // to be destroyed with TaskBase object
+        // it is resonable to expect that if the coroutine is done before
+        // the task creation, then the original stack is continued without suspending,
+        // and coroutine needs to be destroyed with TaskBase object
         handleShouldBeDestroyed_ = true;
     }
     else
@@ -115,6 +121,20 @@ TaskBase<Promise>::TaskBase(std::coroutine_handle<promise_type> handle)
         // otherwise the coroutine should be managed by object that it is awaiting
         handleShouldBeDestroyed_ = false;
     }
+}
+
+template<class Promise>
+TaskBase<Promise>::TaskBase(TaskBase&& other)
+    : handle_(other.handle_), handleShouldBeDestroyed_(std::exchange(other.handleShouldBeDestroyed_, false))
+{
+}
+
+template<class Promise>
+TaskBase<Promise>& TaskBase<Promise>::operator=(TaskBase&& other)
+{
+    handle_ = other.handle_;
+    handleShouldBeDestroyed_ = std::exchange(other.handleShouldBeDestroyed_, false);
+    return *this;
 }
 
 template<class Promise>
@@ -134,9 +154,7 @@ class AwaitableTask : public detail::TaskBase<detail::AwaitablePromise<T>>
     using Base = detail::TaskBase<detail::AwaitablePromise<T>>;
 
 public:
-    AwaitableTask(std::coroutine_handle<typename Base::promise_type> handle)
-        : Base(handle)
-    {}
+   using Base::Base;
 
     class awaiter;
     friend class awaiter;

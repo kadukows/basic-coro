@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(basic-coro)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcoroutines -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcoroutines -Wall -Wextra")
 
 set(BASICCORO_INSTALL_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(BASICCORO_INSTALL_BIN_DIR ${PROJECT_SOURCE_DIR}/bin)

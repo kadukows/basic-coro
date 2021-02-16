@@ -6,6 +6,7 @@ add_subdirectory(lib/googletest EXCLUDE_FROM_ALL)
 set(TESTS_SOURCE_FILES
     main.cpp
     tests/AwaitableTaskTests.cpp
+    tests/SingleEventTests.cpp
 )
 
 add_executable(basiccoro-tests ${TESTS_SOURCE_FILES})
