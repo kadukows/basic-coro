@@ -21,7 +21,12 @@ Library includes following classes:
 Please note that these classes are not multithreading enabled. There is no synchronization or any kind of protection form race conditions. If you need to use coroutines with multithreading, just use [CppCoro](https://github.com/lewissbaker/cppcoro). This library is mostly thought for use with simple GUI programming.
 
 ### Example
-```
+```c++
+#include <iostream>
+
+#include <basiccoro/AwaitableTask.hpp>
+#include <basiccoro/SingleEvent.hpp>
+
 basiccoro::AwaitableTask<void> consumer(basiccoro::SingleEvent<int>& event)
 {
     std::cout << "consumer: start waiting" << std::endl;
