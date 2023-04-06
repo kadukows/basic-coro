@@ -18,7 +18,7 @@ Library includes following classes:
 * `SingleEvent<T>` which models `co_await` enabled event that can be set,
 * `AwaitableTask<T>` which models `co_await` enabled task.
 
-Please note that these classes are not multithreading enabled. There is no synchronization or any kind of protection form race conditions. If you need to use coroutines with multithreading, just use [CppCoro](https://github.com/lewissbaker/cppcoro). This library is mostly thought for use with simple GUI programming.
+Please note that these classes are not multithreading enabled. There is no synchronization or any kind of protection form race conditions. If you need to use coroutines with multithreading, just use [CppCoro](https://github.com/lewissbaker/cppcoro). This library is mostly thought for use with simple GUI programming. However, this makes it suitable for use on platforms like NDS (devkitpro) where atomics aren't implemented.
 
 ### Example
 ```c++
